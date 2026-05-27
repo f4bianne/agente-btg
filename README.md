@@ -248,7 +248,7 @@ Ranking por score comparativo com critérios configuráveis: volume, status, dad
 ### 5. Relatório
 Síntese automática da base filtrada com download em Markdown (`relatorio_agente_ofertas.md`).
 
-## 5.1 Camada de IA generativa
+#### 5.1 Camada de IA generativa
 
 O projeto possui uma camada opcional de **IA generativa** integrada à página de relatório. Essa funcionalidade utiliza a API da **Groq** para gerar uma análise textual executiva a partir dos dados filtrados no dashboard.
 
