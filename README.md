@@ -271,7 +271,7 @@ Com base nesses dados, a IA gera um relatório com tom executivo, técnico e dir
 
 ---
 
-## Diferença entre o relatório fixo e o relatório com IA
+#### Diferença entre o relatório fixo e o relatório com IA
 
 | Relatório | Como funciona | Objetivo |
 |---|---|---|
@@ -286,11 +286,11 @@ A IA não realiza recomendação de investimento. A análise gerada serve apenas
 
 ---
 
-## Configuração da IA com Groq
+#### Configuração da IA com Groq
 
 Para usar a funcionalidade de IA generativa, é necessário possuir uma chave de API da Groq.
 
-### 1. Instalar a dependência
+#### 1. Instalar a dependência
 
 Com o ambiente virtual ativado, rode:
 
@@ -304,7 +304,7 @@ Caso use `requirements.txt`, adicione:
 groq
 ```
 
-### 2. Criar uma chave da Groq
+#### 2. Criar uma chave da Groq
 
 A chave pode ser criada no console da Groq:
 
@@ -314,7 +314,7 @@ https://console.groq.com/keys
 
 Após criar a chave, copie o valor gerado. A chave não deve ser enviada para o GitHub, README, prints ou arquivos públicos do projeto.
 
-### 3. Configurar a variável de ambiente
+#### 3. Configurar a variável de ambiente
 
 Git Bash:
 
@@ -342,7 +342,7 @@ python -m streamlit run app.py
 
 ---
 
-## Observações sobre a IA
+#### Observações sobre a IA
 
 - A IA atua apenas sobre os dados públicos já coletados da CVM.
 - A IA não acessa diretamente o portal da CVM.
