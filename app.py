@@ -4,7 +4,7 @@ import unicodedata
 import pandas as pd
 import plotly.express as px
 import streamlit as st
-
+from groq import Groq
 
 # =========================================================
 # CONFIGURAÇÃO DA PÁGINA
@@ -575,6 +575,145 @@ O coordenador líder com maior presença é **{principal_coord}**.
 - Alertas para novas ofertas relevantes.
 """
 
+def gerar_relatorio_ia(df_filtrado):
+    """
+    Gera uma análise textual executiva com IA generativa usando Groq.
+    A análise é voltada para profissionais de mercado e não representa recomendação financeira.
+    """
+
+    if df_filtrado.empty:
+        return "Não há dados suficientes para gerar uma análise com IA."
+
+    volume_num = pd.to_numeric(df_filtrado["Volume Numérico"], errors="coerce")
+    volume_total = volume_num.sum()
+    registros_com_volume = int(volume_num.notna().sum())
+    registros_sem_volume = int(volume_num.isna().sum())
+
+    total_ofertas = len(df_filtrado)
+    qtd_btg = int(len(detectar_btg(df_filtrado)))
+
+    tipos_ativos = df_filtrado["Tipo de Ativo"].value_counts().head(8).to_dict()
+    status_ofertas = df_filtrado["Status"].value_counts().head(8).to_dict()
+    coordenadores = df_filtrado["Coordenador Líder"].value_counts().head(8).to_dict()
+    emissores = df_filtrado["Emissor"].value_counts().head(8).to_dict()
+
+    top_volume = (
+        df_filtrado.assign(Volume_Analise=volume_num)
+        .sort_values("Volume_Analise", ascending=False)
+        .head(5)[
+            ["Emissor", "Tipo de Ativo", "Coordenador Líder", "Status", "Volume", "Data"]
+        ]
+        .to_dict(orient="records")
+    )
+
+    try:
+        ranking_score = calcular_score_comparacao(df_filtrado).head(5)[
+            [
+                "Score Comparativo",
+                "Emissor",
+                "Tipo de Ativo",
+                "Coordenador Líder",
+                "Status",
+                "Volume",
+                "Data",
+                "Menção BTG"
+            ]
+        ].to_dict(orient="records")
+    except Exception:
+        ranking_score = []
+
+    resumo_dados = {
+        "total_ofertas": total_ofertas,
+        "volume_total_identificado": formatar_dinheiro(volume_total),
+        "registros_com_volume": registros_com_volume,
+        "registros_sem_volume": registros_sem_volume,
+        "quantidade_mencoes_btg": qtd_btg,
+        "tipos_de_ativos_mais_frequentes": tipos_ativos,
+        "status_mais_frequentes": status_ofertas,
+        "coordenadores_lideres_mais_frequentes": coordenadores,
+        "emissores_mais_frequentes": emissores,
+        "top_5_ofertas_por_volume": top_volume,
+        "top_5_ranking_score_mvp": ranking_score,
+    }
+
+    prompt = f"""
+Você é um assistente de inteligência de mercado para uma equipe profissional de mercado de capitais.
+
+A análise é baseada em dados públicos de ofertas primárias coletadas no portal SRE da CVM.
+O objetivo é transformar a base filtrada em um relatório executivo, técnico e direto.
+
+Dados disponíveis:
+{resumo_dados}
+
+Gere um relatório em português, com tom executivo, técnico e direto, considerando que o público é formado por profissionais de mercado.
+
+Siga exatamente esta estrutura:
+
+# Relatório Inteligente de Ofertas Primárias
+
+## 1. Resumo executivo
+Apresente uma leitura objetiva do recorte analisado, considerando quantidade de ofertas, volume identificado, status predominantes e concentração por instituições.
+
+## 2. Principais destaques
+Liste os achados mais relevantes da base, incluindo tipos de ativos mais recorrentes, coordenadores líderes com maior presença, ofertas de maior volume e menções ao BTG.
+
+## 3. Leitura comparativa
+Analise o ranking comparativo do MVP. Explique quais ofertas aparecem melhor posicionadas e por quais critérios elas se destacam, considerando score, volume, status e dados disponíveis.
+
+## 4. Pontos de atenção
+Aponte limitações relevantes da base, como registros sem volume, dados incompletos, concentração institucional, status pendentes ou ausência de informações financeiras detalhadas.
+
+## 5. Prioridades para análise humana
+Indique quais ofertas, instituições ou grupos de registros deveriam ser priorizados por uma equipe humana para análise mais detalhada.
+
+## 6. Encaminhamento analítico
+Indique quais recortes da base parecem mais relevantes para investigação pela equipe, considerando volume, status, concentração por coordenador, tipos de ativos e registros com dados incompletos.
+
+## 7. Observação final
+Finalize com uma conclusão geral.
+
+Regras importantes:
+- Não invente números, nomes ou informações que não estejam nos dados fornecidos.
+- Não diga que uma oferta é boa ou ruim como investimento.
+- Não faça recomendação financeira.
+- Não sugira melhorias do sistema.
+- Não explique conceitos básicos para iniciantes.
+- Use linguagem profissional, objetiva e adequada para mercado financeiro.
+"""
+
+    try:
+        client = Groq()
+
+        resposta = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Você é um assistente analítico especializado em mercado de capitais, dados públicos da CVM e relatórios executivos para profissionais."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.2,
+            max_tokens=1400
+        )
+
+        return resposta.choices[0].message.content
+
+    except Exception as erro:
+        return f"""
+### Análise com IA indisponível no momento
+
+Não foi possível gerar a análise com IA via Groq.
+
+Erro retornado:
+
+{erro}
+
+O MVP segue funcionando com coleta automática, filtros, score comparativo e relatório baseado em regras.
+"""
 
 # =========================================================
 # CARREGAMENTO DA BASE
@@ -1088,6 +1227,21 @@ elif pagina == "5. Relatório":
     relatorio = gerar_relatorio(df_filtrado)
 
     st.markdown(relatorio)
+
+    st.markdown("---")
+    st.markdown("### Análise com IA generativa")
+
+    st.markdown(
+        """
+        Esta seção usa IA generativa para interpretar os dados filtrados e gerar uma análise textual.
+        A resposta serve como apoio à leitura inicial e não representa recomendação financeira.
+        """
+    )
+
+    if st.button("Gerar análise com IA"):
+        with st.spinner("Gerando análise com IA..."):
+            relatorio_ia = gerar_relatorio_ia(df_filtrado)
+            st.markdown(relatorio_ia)
 
     st.download_button(
         label="Baixar relatório",

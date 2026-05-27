@@ -4,5 +4,4 @@ streamlit
 plotly
 python-dotenv
 pypdf
-langchain
-langchain-openai
+groq

@@ -248,6 +248,109 @@ Ranking por score comparativo com critérios configuráveis: volume, status, dad
 ### 5. Relatório
 Síntese automática da base filtrada com download em Markdown (`relatorio_agente_ofertas.md`).
 
+## 5.1 Camada de IA generativa
+
+O projeto possui uma camada opcional de **IA generativa** integrada à página de relatório. Essa funcionalidade utiliza a API da **Groq** para gerar uma análise textual executiva a partir dos dados filtrados no dashboard.
+
+A análise com IA aparece na página **5. Relatório**, ao clicar em **Gerar análise com IA**.
+
+O sistema envia para a LLM um resumo contendo:
+
+- Total de ofertas analisadas.
+- Volume financeiro identificado.
+- Registros com e sem volume.
+- Tipos de ativos mais frequentes.
+- Status mais recorrentes.
+- Coordenadores líderes com maior presença.
+- Emissores mais recorrentes.
+- Ofertas com maior volume.
+- Ranking comparativo do MVP.
+- Quantidade de menções ao BTG.
+
+Com base nesses dados, a IA gera um relatório com tom executivo, técnico e direto, voltado para profissionais de mercado.
+
+---
+
+## Diferença entre o relatório fixo e o relatório com IA
+
+| Relatório | Como funciona | Objetivo |
+|---|---|---|
+| Relatório fixo | Gerado por regras definidas no código. | Apresentar uma síntese objetiva da base filtrada. |
+| Relatório com IA | Gerado por LLM via Groq. | Produzir uma análise executiva mais contextual e interpretativa. |
+
+O **relatório fixo** funciona mesmo sem chave de API. Ele mostra total de ofertas, volume identificado, tipo de ativo mais recorrente, coordenador líder com maior presença e menções ao BTG.
+
+O **relatório com IA** depende da configuração da variável `GROQ_API_KEY`. Ele usa os dados filtrados para gerar uma análise mais completa, incluindo resumo executivo, principais destaques, leitura comparativa, pontos de atenção e encaminhamento analítico.
+
+A IA não realiza recomendação de investimento. A análise gerada serve apenas como apoio à leitura dos dados públicos disponíveis.
+
+---
+
+## Configuração da IA com Groq
+
+Para usar a funcionalidade de IA generativa, é necessário possuir uma chave de API da Groq.
+
+### 1. Instalar a dependência
+
+Com o ambiente virtual ativado, rode:
+
+```bash
+python -m pip install groq
+```
+
+Caso use `requirements.txt`, adicione:
+
+```txt
+groq
+```
+
+### 2. Criar uma chave da Groq
+
+A chave pode ser criada no console da Groq:
+
+```
+https://console.groq.com/keys
+```
+
+Após criar a chave, copie o valor gerado. A chave não deve ser enviada para o GitHub, README, prints ou arquivos públicos do projeto.
+
+### 3. Configurar a variável de ambiente
+
+Git Bash:
+
+```bash
+export GROQ_API_KEY="SUA_CHAVE_AQUI"
+```
+
+PowerShell:
+
+```powershell
+$env:GROQ_API_KEY="SUA_CHAVE_AQUI"
+```
+
+Para verificar se a chave foi reconhecida:
+
+```bash
+python -c "import os; print(os.getenv('GROQ_API_KEY') is not None)"
+```
+
+Se aparecer `True`, a chave foi configurada corretamente. Depois, rode o dashboard no mesmo terminal:
+
+```bash
+python -m streamlit run app.py
+```
+
+---
+
+## Observações sobre a IA
+
+- A IA atua apenas sobre os dados públicos já coletados da CVM.
+- A IA não acessa diretamente o portal da CVM.
+- A IA não lê prospectos em PDF nesta versão.
+- A IA não utiliza dados privados de bancos ou plataformas.
+- A resposta pode variar conforme o modelo utilizado.
+- A análise gerada não representa recomendação financeira.
+
 ---
 
 ## Critérios do comparador
