@@ -376,7 +376,9 @@ def aplicar_filtros(df, tipo, status, coordenador, busca):
             lambda linha: " ".join(linha.values),
             axis=1
         ).str.lower()
-        filtrado = filtrado[texto_linha.str.contains(texto_busca, na=False)]
+        filtrado = filtrado[
+            texto_linha.str.contains(texto_busca, na=False, regex=False)
+        ]
 
     return filtrado
 
@@ -1019,18 +1021,21 @@ elif pagina == "4. Comparação de ofertas":
         )
 
         fig_comparador.update_layout(
+            title=dict(
+                text="Ranking comparativo por score:",
+                font=dict(color=TEXT, size=18)
+            ),
             height=520,
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
             font=dict(color=TEXT, size=14),
-            title_font=dict(color=TEXT, size=18),
             xaxis=dict(
                 title="Score comparativo",
                 gridcolor="rgba(255,255,255,0.08)",
                 zerolinecolor="rgba(255,255,255,0.15)"
             ),
             yaxis=dict(title=""),
-            margin=dict(l=20, r=70, t=40, b=30)
+            margin=dict(l=20, r=70, t=60, b=30)
         )
 
         st.plotly_chart(fig_comparador, use_container_width=True)
